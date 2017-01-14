@@ -145,30 +145,7 @@ func (model *Model) Step(shapeType ShapeType, alpha, repeat int) int {
 }
 
 func (model *Model) runWorkers(t ShapeType, a, n, age, m int) *State {
-	wn := len(model.Workers)
-	ch := make(chan *State, wn)
-	wm := m / wn
-	if m%wn != 0 {
-		wm++
-	}
-	for i := 0; i < wn; i++ {
-		worker := model.Workers[i]
-		worker.Init(model.Current, model.Score)
-		go model.runWorker(worker, t, a, n, age, wm, ch)
-	}
-	var bestEnergy float64
-	var bestState *State
-	for i := 0; i < wn; i++ {
-		state := <-ch
-		energy := state.Energy()
-		if i == 0 || energy < bestEnergy {
-			bestEnergy = energy
-			bestState = state
-		}
-	}
-	return bestState
-}
-
-func (model *Model) runWorker(worker *Worker, t ShapeType, a, n, age, m int, ch chan *State) {
-	ch <- worker.BestHillClimbState(t, a, n, age, m)
+	worker := model.Workers[0]
+	worker.Init(model.Current, model.Score)
+	return worker.BestHillClimbState(t, a, n, age, 1)
 }
